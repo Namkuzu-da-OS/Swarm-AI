@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swarm AI | Project Infographic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- 
+    Narrative Plan:
+    1.  Hook: Introduce "Swarm AI" and its core mission (Vibe-Driven Development).
+    2.  Core Concept: A simple flowchart visualizing the user's idea: Gather -> Find -> Point AI -> Fix.
+    3.  Service Focus: A Donut Chart showing the "heavy focus" on Crypto, with other areas included.
+    4.  The Swarm: "Who" is in the collective (Vibe Coders, AI Researchers).
+    5.  The AI Toolkit: "What" AI models are used (Gemini, Claude, Codex, etc.).
+    6.  Project Lifecycle: A detailed HTML/Tailwind flowchart of the end-to-end process.
+    7.  Vision: A concluding "big idea" statement about building novel solutions.
+    -->
+
+    <!-- 
+    Visualization Choices:
+    1.  Core Concept (Process): Goal: Organize. Visualization: Flow Chart. Method: Structured HTML/CSS with Tailwind. Justification: Clearly shows the simple 4-step process. NO SVG/Mermaid.
+    2.  Service Focus (Composition): Goal: Compare. Visualization: Donut Chart. Method: Chart.js (Canvas). Justification: Perfectly illustrates the "heavy focus" on Crypto while showing other service areas as parts of the whole. NO SVG.
+    3.  The Swarm (Groups): Goal: Organize. Visualization: Cards/List. Method: Structured HTML/CSS with Tailwind. Justification: Simple way to categorize the participants. NO SVG.
+    4.  AI Toolkit (List): Goal: Organize. Visualization: Cards/Grid. Method: Structured HTML/CSS with Tailwind. Justification: Displays the mentioned AI tools clearly. NO SVG.
+    5.  Project Lifecycle (Process): Goal: Organize. Visualization: Flow Chart. Method: Structured HTML/CSS with Tailwind. Justification: Details the multi-step project flow vertically for clarity. NO SVG/Mermaid.
+    -->
+
+    <!-- Chosen Palette: Brilliant Blues (#004AAD, #0056D6, #006CFF, #E6F0FF, #F5F9FF) -->
+    <!-- Confirmation: NO SVG graphics were used. NO Mermaid JS was used. All charts are rendered via Chart.js (Canvas) and all diagrams are custom HTML/Tailwind. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F5F9FF;
+            color: #1F2937;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 320px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+                max-height: 350px;
+            }
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+
+    <div class="container max-w-6xl mx-auto p-4 md:p-8">
+
+        <header class="text-center my-10 md:my-16">
+            <h1 class="text-5xl md:text-7xl font-black text-[#004AAD] mb-4">
+                SWARM AI
+            </h1>
+            <p class="text-2xl md:text-3xl font-semibold text-[#0056D6]">
+                Harnessing Collective AI for Vibe-Driven Development
+            </p>
+        </header>
+
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+
+            <section class="bg-white rounded-lg shadow-xl p-6 md:p-8 md:col-span-2">
+                <h2 class="text-3xl font-bold text-[#004AAD] mb-4">
+                    The Core Concept
+                </h2>
+                <p class="text-lg text-gray-700 mb-8">
+                    Swarm AI is a collective of "vibe coders," developers, and researchers. We get together, find
+                    projects that need fixing, and point our combined AI capabilities at them to deliver innovative and
+                    effective solutions.
+                </p>
+                <div class="flex flex-col md:flex-row justify-around items-center space-y-4 md:space-y-0 md:space-x-2">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="bg-[#E6F0FF] rounded-lg p-6 shadow-md w-48 h-32 flex items-center justify-center">
+                            <span class="text-lg font-semibold text-[#004AAD]">1. Gather the Swarm</span>
+                        </div>
+                    </div>
+                    <div class="text-4xl font-light text-[#006CFF] transform rotate-90 md:rotate-0">→</div>
+                    <div class="flex flex-col items-center text-center">
+                        <div class="bg-[#E6F0FF] rounded-lg p-6 shadow-md w-48 h-32 flex items-center justify-center">
+                            <span class="text-lg font-semibold text-[#004AAD]">2. Identify Projects</span>
+                        </div>
+                    </div>
+                    <div class="text-4xl font-light text-[#006CFF] transform rotate-90 md:rotate-0">→</div>
+                    <div class="flex flex-col items-center text-center">
+                        <div class="bg-[#E6F0FF] rounded-lg p-6 shadow-md w-48 h-32 flex items-center justify-center">
+                            <span class="text-lg font-semibold text-[#004AAD]">3. Deploy AI Tools</span>
+                        </div>
+                    </div>
+                    <div class="text-4xl font-light text-[#006CFF] transform rotate-90 md:rotate-0">→</div>
+                    <div class="flex flex-col items-center text-center">
+                        <div class="bg-[#004AAD] rounded-lg p-6 shadow-md w-48 h-32 flex items-center justify-center">
+                            <span class="text-lg font-semibold text-white">4. Deliver Solutions</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-lg shadow-xl p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-[#004AAD] mb-4">
+                    Our Service Focus
+                </h2>
+                <p class="text-lg text-gray-700 mb-6">
+                    While we're open to any challenge, the Swarm has a heavy focus on cutting-edge crypto projects. We
+                    also apply our AI-augmented approach to web development, documentation, code reviews, and pure AI
+                    research.
+                </p>
+                <div class="chart-container">
+                    <canvas id="focusChart"></canvas>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-lg shadow-xl p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-[#004AAD] mb-4">
+                    Who is the Swarm?
+                </h2>
+                <p class="text-lg text-gray-700 mb-6">
+                    Our collective is built on two core groups of collaborators, all working in sync with our AI
+                    toolchain.
+                </p>
+                <div class="space-y-6">
+                    <div class="bg-[#E6F0FF] rounded-lg p-6 shadow">
+                        <h3 class="text-2xl font-bold text-[#0056D6] mb-2">Vibe Coders</h3>
+                        <p class="text-gray-800">
+                            The core developers, freelancers, and engineers who "vibe code"—using intuition, experience,
+                            and AI assistance to build and fix complex systems.
+                        </p>
+                    </div>
+                    <div class="bg-[#E6F0FF] rounded-lg p-6 shadow">
+                        <h3 class="text-2xl font-bold text-[#0056D6] mb-2">AI Researchers</h3>
+                        <p class="text-gray-800">
+                            The innovators dedicated to finding novel solutions. They use AI research to discover
+                            methods and build tools that others haven't thought of yet.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-lg shadow-xl p-6 md:p-8 md:col-span-2">
+                <h2 class="text-3xl font-bold text-[#004AAD] mb-4">
+                    The AI Toolkit
+                </h2>
+                <p class="text-lg text-gray-700 mb-8">
+                    We leverage a stack of powerful AI models to augment our skills, automate tasks, and generate novel
+                    insights. This is our "focused AI capability."
+                </p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div class="bg-gray-100 rounded-lg p-6">
+                        <span class="text-2xl font-bold text-[#0056D6]">Gemini (Gem3)</span>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-6">
+                        <span class="text-2xl font-bold text-[#0056D6]">Claude</span>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-6">
+                        <span class="text-2xl font-bold text-[#0056D6]">Codex</span>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-6">
+                        <span class="text-2xl font-bold text-[#0056D6]">Custom Research</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-lg shadow-xl p-6 md:p-8 md:col-span-2">
+                <h2 class="text-3xl font-bold text-[#004AAD] mb-6">
+                    The Swarm AI Project Lifecycle
+                </h2>
+                <p class="text-lg text-gray-700 mb-8">
+                    From idea to delivery, our process is designed to be fluid, collaborative, and deeply integrated
+                    with AI at every step.
+                </p>
+                <div class="flex flex-col items-center w-full max-w-lg mx-auto">
+                    <div class="w-full bg-[#E6F0FF] rounded-lg p-4 shadow text-center">
+                        <span class="text-sm font-semibold text-[#0056D6]">STEP 1</span>
+                        <h3 class="text-xl font-bold text-[#004AAD]">Project Sourcing</h3>
+                        <p class="text-gray-700">The Swarm identifies or is assigned a project (Crypto, Web, etc.).</p>
+                    </div>
+                    <div class="text-4xl font-light text-[#006CFF] my-3">↓</div>
+                    <div class="w-full bg-[#E6F0FF] rounded-lg p-4 shadow text-center">
+                        <span class="text-sm font-semibold text-[#0056D6]">STEP 2</span>
+                        <h3 class="text-xl font-bold text-[#004AAD]">Swarm Formation</h3>
+                        <p class="text-gray-700">A dedicated team of Vibe Coders and Researchers assembles for the task.
+                        </p>
+                    </div>
+                    <div class="text-4xl font-light text-[#006CFF] my-3">↓</div>
+                    <div class="w-full bg-[#E6F0FF] rounded-lg p-4 shadow text-center">
+                        <span class="text-sm font-semibold text-[#0056D6]">STEP 3</span>
+                        <h3 class="text-xl font-bold text-[#004AAD]">AI-Augmented Execution</h3>
+                        <p class="text-gray-700">The team uses the AI Toolkit (Gemini, Claude, etc.) to code, review,
+                            and document.</p>
+                    </div>
+                    <div class="text-4xl font-light text-[#006CFF] my-3">↓</div>
+                    <div class="w-full bg-[#E6F0FF] rounded-lg p-4 shadow text-center">
+                        <span class="text-sm font-semibold text-[#0056D6]">STEP 4</span>
+                        <h3 class="text-xl font-bold text-[#004AAD]">Novel Solution R&D</h3>
+                        <p class="text-gray-700">AI Research is used to find unique solutions and build custom tools if
+                            needed.</p>
+                    </div>
+                    <div class="text-4xl font-light text-[#006CFF] my-3">↓</div>
+                    <div class="w-full bg-[#004AAD] rounded-lg p-4 shadow text-center">
+                        <span class="text-sm font-semibold text-[#A8CFFF]">STEP 5</span>
+                        <h3 class="text-xl font-bold text-white">Delivery & Review</h3>
+                        <p class="text-gray-200">The Swarm delivers the final, AI-vetted solution.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-[#004AAD] text-white rounded-lg shadow-xl p-10 md:p-12 md:col-span-2 text-center">
+                <h2 class="text-4xl font-black mb-4">
+                    Building the Future
+                </h2>
+                <p class="text-2xl text-[#E6F0FF]">
+                    We're not just fixing bugs. We're using collective AI-driven research to build novel solutions
+                    people haven't thought of yet.
+                </p>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('focusChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Crypto', 'Web Dev', 'Documentation', 'Code Reviews', 'AI Research'],
+                    datasets: [{
+                        label: 'Project Focus',
+                        data: [50, 20, 10, 10, 10],
+                        backgroundColor: [
+                            '#004AAD',
+                            '#0056D6',
+                            '#006CFF',
+                            '#5A9CFF',
+                            '#A8CFFF'
+                        ],
+                        borderColor: '#F5F9FF',
+                        borderWidth: 4,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function (tooltipItems) {
+                                    const item = tooltipItems[0];
+                                    let label = item.chart.data.labels[item.dataIndex];
+                                    if (Array.isArray(label)) {
+                                        return label.join(' ');
+                                    } else {
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#1F2937',
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

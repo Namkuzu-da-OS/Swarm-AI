@@ -20,6 +20,8 @@ const initThreeJS = () => {
 
     // Scene
     const scene = new THREE.Scene();
+    // Fog for depth
+    scene.fog = new THREE.FogExp2(0x030304, 0.02);
 
     // Camera
     const camera = new THREE.PerspectiveCamera(
@@ -35,74 +37,77 @@ const initThreeJS = () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    // Create Neural Globe
-    const geometry = new THREE.IcosahedronGeometry(3, 2);
-    const positions = geometry.attributes.position;
+    // Group to hold everything
+    const group = new THREE.Group();
+    scene.add(group);
 
-    // Wireframe
-    const wireframeMaterial = new THREE.MeshBasicMaterial({
-        color: 0x00f3ff,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.15
-    });
-    const wireframe = new THREE.Mesh(geometry, wireframeMaterial);
-    scene.add(wireframe);
-
-    // Particles at vertices
+    // Create Particles
     const particlesGeometry = new THREE.BufferGeometry();
-    const particlePositions = [];
+    const particleCount = 700;
+    const posArray = new Float32Array(particleCount * 3);
 
-    for (let i = 0; i < positions.count; i++) {
-        particlePositions.push(
-            positions.getX(i),
-            positions.getY(i),
-            positions.getZ(i)
-        );
+    for (let i = 0; i < particleCount * 3; i++) {
+        // Sphere distribution
+        posArray[i] = (Math.random() - 0.5) * 10;
     }
 
-    particlesGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particlePositions, 3));
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
 
+    // Material for Particles - Electric Indigo
     const particlesMaterial = new THREE.PointsMaterial({
-        color: 0x00f3ff,
-        size: 0.1,
+        size: 0.04,
+        color: 0x4d4dff, // Electric Indigo
         transparent: true,
-        opacity: 0.8
+        opacity: 0.8,
     });
 
-    const particles = new THREE.Points(particlesGeometry, particlesMaterial);
-    scene.add(particles);
+    // Mesh
+    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+    group.add(particlesMesh);
 
-    // Outer glow sphere
-    const glowGeometry = new THREE.IcosahedronGeometry(3.2, 2);
-    const glowMaterial = new THREE.MeshBasicMaterial({
-        color: 0x00ff41,
+    // Secondary Particles - Fluorescent Mint
+    const particlesGeometry2 = new THREE.BufferGeometry();
+    const particleCount2 = 300;
+    const posArray2 = new Float32Array(particleCount2 * 3);
+
+    for (let i = 0; i < particleCount2 * 3; i++) {
+        posArray2[i] = (Math.random() - 0.5) * 12;
+    }
+
+    particlesGeometry2.setAttribute('position', new THREE.BufferAttribute(posArray2, 3));
+
+    const particlesMaterial2 = new THREE.PointsMaterial({
+        size: 0.03,
+        color: 0x00ff9d, // Mint
         transparent: true,
-        opacity: 0.05,
-        side: THREE.BackSide
+        opacity: 0.6,
     });
-    const glow = new THREE.Mesh(glowGeometry, glowMaterial);
-    scene.add(glow);
 
-    camera.position.z = 7;
+    const particlesMesh2 = new THREE.Points(particlesGeometry2, particlesMaterial2);
+    group.add(particlesMesh2);
+
+    camera.position.z = 4;
+
+    // Mouse interaction
+    let mouseX = 0;
+    let mouseY = 0;
+
+    window.addEventListener('mousemove', (event) => {
+        mouseX = event.clientX / window.innerWidth - 0.5;
+        mouseY = event.clientY / window.innerHeight - 0.5;
+    });
 
     // Animation
-    let pulsePhase = 0;
     const animate = () => {
         requestAnimationFrame(animate);
 
-        // Rotate
-        wireframe.rotation.y += 0.001;
-        wireframe.rotation.x += 0.0005;
-        particles.rotation.y += 0.001;
-        particles.rotation.x += 0.0005;
-        glow.rotation.y -= 0.0008;
+        // Rotate entire group
+        group.rotation.y += 0.002;
+        group.rotation.x += 0.001;
 
-        // Pulse
-        pulsePhase += 0.01;
-        const scale = 1 + Math.sin(pulsePhase) * 0.05;
-        wireframe.scale.set(scale, scale, scale);
-        particles.scale.set(scale, scale, scale);
+        // Mouse parallax
+        group.rotation.y += mouseX * 0.05;
+        group.rotation.x += mouseY * 0.05;
 
         renderer.render(scene, camera);
     };
@@ -276,9 +281,69 @@ const initMissions = async () => {
     }
 };
 
+// --- 5. CUSTOM CURSOR & MAGNETIC EFFECT ---
+const initCursor = () => {
+    const cursorDot = document.querySelector('.cursor-dot');
+    const cursorOutline = document.querySelector('.cursor-outline');
+
+    // Mouse movement
+    window.addEventListener('mousemove', (e) => {
+        const posX = e.clientX;
+        const posY = e.clientY;
+
+        // Dot follows instantly
+        cursorDot.style.left = `${posX}px`;
+        cursorDot.style.top = `${posY}px`;
+
+        // Outline follows with delay (using animate for smoothness)
+        cursorOutline.animate({
+            left: `${posX}px`,
+            top: `${posY}px`
+        }, { duration: 500, fill: "forwards" });
+    });
+
+    // Hover effects
+    const hoverTargets = document.querySelectorAll('.hover-target, a, button, .mission-card, .glass-panel');
+
+    hoverTargets.forEach(target => {
+        target.addEventListener('mouseenter', () => {
+            cursorOutline.style.width = '60px';
+            cursorOutline.style.height = '60px';
+            cursorOutline.style.backgroundColor = 'rgba(77, 77, 255, 0.1)';
+            cursorOutline.style.borderColor = 'transparent';
+        });
+
+        target.addEventListener('mouseleave', () => {
+            cursorOutline.style.width = '40px';
+            cursorOutline.style.height = '40px';
+            cursorOutline.style.backgroundColor = 'transparent';
+            cursorOutline.style.borderColor = 'var(--accent-secondary)';
+        });
+    });
+};
+
+// --- 6. SCROLL REVEAL ---
+const initScrollReveal = () => {
+    const reveals = document.querySelectorAll('.reveal');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    reveals.forEach(reveal => observer.observe(reveal));
+};
+
 // Initialize All
 document.addEventListener('DOMContentLoaded', () => {
     initLenis();
     initThreeJS();
     initMissions();
+    initCursor();
+    initScrollReveal();
 });

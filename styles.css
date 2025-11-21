@@ -1,24 +1,24 @@
 :root {
-    /* Deep Void Base */
-    --bg-color: #030304;
-    --bg-gradient: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #030304 60%);
+    /* Deep Ocean Base */
+    --bg-color: #02040a;
+    --bg-gradient: radial-gradient(circle at 50% 0%, #001e45 0%, #02040a 60%);
 
-    /* Sophisticated Accents */
-    --text-color: #f0f0f0;
-    --text-muted: #888899;
-    --neon-cyan: #00f3ff;
-    /* Keeping as legacy ref, but moving to new tokens */
-    --accent-primary: #4d4dff;
-    /* Electric Indigo */
-    --accent-secondary: #00ff9d;
-    /* Fluorescent Mint */
-    --accent-glow: rgba(77, 77, 255, 0.5);
+    /* Brilliant Blue Accents (from Reference) */
+    --text-color: #e6f0ff;
+    --text-muted: #94a3b8;
+    --accent-primary: #006CFF;
+    /* Electric Blue */
+    --accent-secondary: #004AAD;
+    /* Deep Royal */
+    --accent-highlight: #5A9CFF;
+    /* Soft Blue */
+    --accent-glow: rgba(0, 108, 255, 0.4);
 
-    /* Glassmorphism 2.0 */
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.06);
-    --glass-highlight: rgba(255, 255, 255, 0.1);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    /* Glassmorphism Blue */
+    --glass-bg: rgba(0, 20, 40, 0.3);
+    --glass-border: rgba(0, 108, 255, 0.15);
+    --glass-highlight: rgba(255, 255, 255, 0.05);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 
     /* Typography */
     --font-heading: 'Space Grotesk', sans-serif;
@@ -974,4 +974,367 @@ h1 {
     border-color: var(--accent-primary);
     color: #fff;
     box-shadow: 0 0 20px var(--accent-glow);
+}
+
+/* Focus Section & Charts */
+.focus-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.focus-chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+}
+
+.donut-chart {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent-secondary) 0% 50%,
+            var(--accent-primary) 50% 70%,
+            var(--accent-highlight) 70% 80%,
+            #2a2a40 80% 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 0 30px rgba(0, 108, 255, 0.2);
+    margin: 2rem 0;
+}
+
+.donut-hole {
+    width: 140px;
+    height: 140px;
+    background: var(--bg-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 2;
+}
+
+.donut-label {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--accent-primary);
+}
+
+.donut-label small {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: block;
+}
+
+.chart-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.dot.crypto {
+    background: var(--accent-secondary);
+}
+
+.dot.web {
+    background: var(--accent-primary);
+}
+
+.dot.research {
+    background: var(--accent-highlight);
+}
+
+.dot.other {
+    background: #2a2a40;
+}
+
+.role-card {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 3px solid var(--accent-primary);
+}
+
+.role-card h4 {
+    color: var(--accent-highlight);
+    margin-bottom: 0.5rem;
+}
+
+/* --- Intake Modal --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(2, 4, 10, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modal-content {
+    width: 90%;
+    max-width: 600px;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border: 1px solid var(--accent-primary);
+    box-shadow: 0 0 50px rgba(0, 108, 255, 0.2);
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+
+.close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 2rem;
+    cursor: pointer;
+    z-index: 10;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: var(--accent-primary);
+}
+
+/* Agent Interface */
+.agent-interface {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1.5rem;
+}
+
+.agent-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 1rem;
+}
+
+.agent-avatar {
+    width: 40px;
+    height: 40px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.agent-avatar .core {
+    width: 12px;
+    height: 12px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    z-index: 2;
+    box-shadow: 0 0 10px var(--accent-primary);
+}
+
+.agent-avatar .pulse-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--accent-primary);
+    border-radius: 50%;
+    animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+.agent-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-secondary);
+    border-radius: 50%;
+    box-shadow: 0 0 5px var(--accent-secondary);
+}
+
+.status-text {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent-secondary);
+    letter-spacing: 1px;
+}
+
+/* Chat History */
+.chat-history {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-right: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.message {
+    max-width: 80%;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    position: relative;
+    animation: fade-in-up 0.3s ease forwards;
+}
+
+.message.agent {
+    align-self: flex-start;
+    background: rgba(0, 108, 255, 0.1);
+    border-left: 2px solid var(--accent-primary);
+    color: var(--text-color);
+}
+
+.message.user {
+    align-self: flex-end;
+    background: rgba(255, 255, 255, 0.05);
+    border-right: 2px solid var(--text-muted);
+    color: var(--text-color);
+}
+
+.typing-indicator {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+    display: none;
+}
+
+.typing-indicator.active {
+    display: block;
+    animation: blink 1s infinite;
+}
+
+/* Input Area */
+.chat-input-area {
+    display: flex;
+    gap: 1rem;
+    position: relative;
+}
+
+.glass-input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 1rem;
+    color: var(--text-color);
+    font-family: var(--font-body);
+    resize: none;
+    height: 60px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.glass-input:focus {
+    border-color: var(--accent-primary);
+}
+
+.send-btn {
+    width: 60px;
+    height: 60px;
+    background: var(--accent-primary);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.send-btn:hover {
+    background: var(--accent-highlight);
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.cta-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.hero-cta.secondary {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-color);
+}
+
+.hero-cta.secondary:hover {
+    border-color: var(--accent-primary);
+    background: rgba(0, 108, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+    .cta-group {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .modal-content {
+        width: 95%;
+        height: 80vh;
+    }
 }

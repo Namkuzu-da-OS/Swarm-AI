@@ -20,8 +20,8 @@ const initThreeJS = () => {
 
     // Scene
     const scene = new THREE.Scene();
-    // Fog for depth
-    scene.fog = new THREE.FogExp2(0x030304, 0.02);
+    // Fog for depth (Deep Ocean)
+    scene.fog = new THREE.FogExp2(0x02040a, 0.02);
 
     // Camera
     const camera = new THREE.PerspectiveCamera(
@@ -53,10 +53,10 @@ const initThreeJS = () => {
 
     particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
 
-    // Material for Particles - Electric Indigo
+    // Material for Particles - Electric Blue
     const particlesMaterial = new THREE.PointsMaterial({
         size: 0.04,
-        color: 0x4d4dff, // Electric Indigo
+        color: 0x006CFF, // Electric Blue
         transparent: true,
         opacity: 0.8,
     });
@@ -65,7 +65,7 @@ const initThreeJS = () => {
     const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
     group.add(particlesMesh);
 
-    // Secondary Particles - Fluorescent Mint
+    // Secondary Particles - Deep Royal
     const particlesGeometry2 = new THREE.BufferGeometry();
     const particleCount2 = 300;
     const posArray2 = new Float32Array(particleCount2 * 3);
@@ -78,7 +78,7 @@ const initThreeJS = () => {
 
     const particlesMaterial2 = new THREE.PointsMaterial({
         size: 0.03,
-        color: 0x00ff9d, // Mint
+        color: 0x5A9CFF, // Soft Blue Highlight
         transparent: true,
         opacity: 0.6,
     });
@@ -339,6 +339,120 @@ const initScrollReveal = () => {
     reveals.forEach(reveal => observer.observe(reveal));
 };
 
+// --- 7. INTAKE AGENT ---
+const initIntakeAgent = () => {
+    const modal = document.getElementById('intake-modal');
+    const startBtn = document.getElementById('start-project-btn');
+    const closeBtn = document.getElementById('close-modal');
+    const chatHistory = document.getElementById('chat-history');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    let hasGreeted = false;
+
+    // Open Modal
+    startBtn.addEventListener('click', () => {
+        modal.classList.add('active');
+        if (!hasGreeted) {
+            setTimeout(() => {
+                addAgentMessage("Neural link established. I am the Swarm Orchestrator.");
+                setTimeout(() => {
+                    addAgentMessage("Describe your project vision. I will decompose it into actionable missions for the swarm.");
+                }, 1000);
+            }, 500);
+            hasGreeted = true;
+        }
+    });
+
+    // Close Modal
+    closeBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+    });
+
+    // Send Message
+    const handleSend = () => {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        // Add User Message
+        addUserMessage(text);
+        userInput.value = '';
+
+        // Simulate Agent Thinking & Response
+        simulateAgentResponse(text);
+    };
+
+    sendBtn.addEventListener('click', handleSend);
+    userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    });
+
+    function addUserMessage(text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message user';
+        msgDiv.textContent = text;
+        chatHistory.appendChild(msgDiv);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    function addAgentMessage(text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message agent';
+
+        // Typewriter effect
+        let i = 0;
+        msgDiv.textContent = '';
+        chatHistory.appendChild(msgDiv);
+
+        const typeInterval = setInterval(() => {
+            msgDiv.textContent += text.charAt(i);
+            i++;
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            if (i >= text.length) {
+                clearInterval(typeInterval);
+            }
+        }, 20);
+    }
+
+    function simulateAgentResponse(userText) {
+        // Simple keyword matching for demo purposes
+        const lowerText = userText.toLowerCase();
+        let response = "";
+        let missions = [];
+
+        if (lowerText.includes("crypto") || lowerText.includes("token") || lowerText.includes("defi")) {
+            response = "Analyzing DeFi parameters... I've identified a need for secure smart contract architecture.";
+            missions = ["Smart Contract Audit", "Tokenomics Design", "React dApp Frontend"];
+        } else if (lowerText.includes("web") || lowerText.includes("site") || lowerText.includes("app")) {
+            response = "Web architecture detected. Optimizing for performance and SEO.";
+            missions = ["UX/UI Design System", "Frontend Implementation", "Backend API Setup"];
+        } else {
+            response = "Processing request... I will assemble a generalist squad for this task.";
+            missions = ["Requirements Gathering", "Prototype Development", "System Architecture"];
+        }
+
+        // Thinking delay
+        const typingIndicator = document.createElement('div');
+        typingIndicator.className = 'typing-indicator active';
+        typingIndicator.textContent = 'Orchestrator is analyzing...';
+        chatHistory.appendChild(typingIndicator);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+
+        setTimeout(() => {
+            typingIndicator.remove();
+            addAgentMessage(response);
+
+            setTimeout(() => {
+                addAgentMessage(`Proposed Missions Generated:\n\n${missions.map(m => `• ${m}`).join('\n')}`);
+                // Here we could actually trigger the missions board update in a real app
+            }, 1500);
+        }, 2000);
+    }
+};
+
 // Initialize All
 document.addEventListener('DOMContentLoaded', () => {
     initLenis();
@@ -346,4 +460,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initMissions();
     initCursor();
     initScrollReveal();
+    initIntakeAgent();
 });

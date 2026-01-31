@@ -1,9 +1,189 @@
-// --- 1. LENIS SMOOTH SCROLL ---
-const initLenis = () => {
+// ============================================
+// SWARM-AI: The Living Graph
+// Network visualization + interactions
+// ============================================
+
+// Network Graph Animation
+class NetworkGraph {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.nodes = [];
+        this.mouse = { x: null, y: null };
+        this.nodeCount = 60;
+        this.connectionDistance = 150;
+        this.mouseRadius = 200;
+
+        this.colors = {
+            node: '#e8b87d',
+            nodeDim: 'rgba(232, 184, 125, 0.3)',
+            line: 'rgba(232, 184, 125, 0.08)',
+            lineActive: 'rgba(232, 184, 125, 0.25)'
+        };
+
+        this.resize();
+        this.init();
+        this.bindEvents();
+        this.animate();
+    }
+
+    resize() {
+        this.width = this.canvas.width = window.innerWidth;
+        this.height = this.canvas.height = window.innerHeight;
+    }
+
+    init() {
+        this.nodes = [];
+        for (let i = 0; i < this.nodeCount; i++) {
+            this.nodes.push({
+                x: Math.random() * this.width,
+                y: Math.random() * this.height,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.3,
+                radius: Math.random() * 2 + 1,
+                pulse: Math.random() * Math.PI * 2
+            });
+        }
+    }
+
+    bindEvents() {
+        window.addEventListener('resize', () => {
+            this.resize();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            this.mouse.x = e.clientX;
+            this.mouse.y = e.clientY;
+        });
+
+        window.addEventListener('mouseout', () => {
+            this.mouse.x = null;
+            this.mouse.y = null;
+        });
+    }
+
+    update() {
+        for (let node of this.nodes) {
+            // Drift
+            node.x += node.vx;
+            node.y += node.vy;
+
+            // Pulse
+            node.pulse += 0.02;
+
+            // Bounce off edges
+            if (node.x < 0 || node.x > this.width) node.vx *= -1;
+            if (node.y < 0 || node.y > this.height) node.vy *= -1;
+
+            // Keep in bounds
+            node.x = Math.max(0, Math.min(this.width, node.x));
+            node.y = Math.max(0, Math.min(this.height, node.y));
+
+            // Mouse interaction - gentle attraction
+            if (this.mouse.x !== null && this.mouse.y !== null) {
+                const dx = this.mouse.x - node.x;
+                const dy = this.mouse.y - node.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < this.mouseRadius) {
+                    const force = (1 - dist / this.mouseRadius) * 0.02;
+                    node.vx += dx * force * 0.01;
+                    node.vy += dy * force * 0.01;
+                }
+            }
+
+            // Damping
+            node.vx *= 0.99;
+            node.vy *= 0.99;
+        }
+    }
+
+    draw() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+
+        // Draw connections
+        for (let i = 0; i < this.nodes.length; i++) {
+            for (let j = i + 1; j < this.nodes.length; j++) {
+                const dx = this.nodes[i].x - this.nodes[j].x;
+                const dy = this.nodes[i].y - this.nodes[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < this.connectionDistance) {
+                    const opacity = 1 - dist / this.connectionDistance;
+
+                    // Check if near mouse for brighter lines
+                    let isNearMouse = false;
+                    if (this.mouse.x !== null) {
+                        const midX = (this.nodes[i].x + this.nodes[j].x) / 2;
+                        const midY = (this.nodes[i].y + this.nodes[j].y) / 2;
+                        const mouseDist = Math.sqrt(
+                            (this.mouse.x - midX) ** 2 + (this.mouse.y - midY) ** 2
+                        );
+                        isNearMouse = mouseDist < this.mouseRadius;
+                    }
+
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.nodes[i].x, this.nodes[i].y);
+                    this.ctx.lineTo(this.nodes[j].x, this.nodes[j].y);
+                    this.ctx.strokeStyle = isNearMouse
+                        ? `rgba(232, 184, 125, ${opacity * 0.3})`
+                        : `rgba(232, 184, 125, ${opacity * 0.08})`;
+                    this.ctx.lineWidth = isNearMouse ? 1 : 0.5;
+                    this.ctx.stroke();
+                }
+            }
+        }
+
+        // Draw nodes
+        for (let node of this.nodes) {
+            const pulseSize = 1 + Math.sin(node.pulse) * 0.3;
+            const size = node.radius * pulseSize;
+
+            // Check if near mouse
+            let isNearMouse = false;
+            if (this.mouse.x !== null) {
+                const dist = Math.sqrt(
+                    (this.mouse.x - node.x) ** 2 + (this.mouse.y - node.y) ** 2
+                );
+                isNearMouse = dist < this.mouseRadius;
+            }
+
+            // Glow for nodes near mouse
+            if (isNearMouse) {
+                this.ctx.beginPath();
+                this.ctx.arc(node.x, node.y, size * 3, 0, Math.PI * 2);
+                this.ctx.fillStyle = 'rgba(232, 184, 125, 0.1)';
+                this.ctx.fill();
+            }
+
+            // Node
+            this.ctx.beginPath();
+            this.ctx.arc(node.x, node.y, size, 0, Math.PI * 2);
+            this.ctx.fillStyle = isNearMouse ? this.colors.node : this.colors.nodeDim;
+            this.ctx.fill();
+        }
+    }
+
+    animate() {
+        this.update();
+        this.draw();
+        requestAnimationFrame(() => this.animate());
+    }
+}
+
+// Initialize network
+const initNetwork = () => {
+    const canvas = document.getElementById('network-canvas');
+    if (canvas) {
+        new NetworkGraph(canvas);
+    }
+};
+
+// Smooth scroll with Lenis
+const initSmoothScroll = () => {
     const lenis = new Lenis({
         duration: 1.2,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        smooth: true,
     });
 
     function raf(time) {
@@ -14,451 +194,131 @@ const initLenis = () => {
     requestAnimationFrame(raf);
 };
 
-// --- 2. THREE.JS NEURAL GLOBE ---
-const initThreeJS = () => {
-    const container = document.getElementById('canvas-container');
+// Reveal on scroll
+const initReveal = () => {
+    const elements = document.querySelectorAll('.reveal, .stagger');
 
-    // Scene
-    const scene = new THREE.Scene();
-    // Fog for depth (Deep Ocean)
-    scene.fog = new THREE.FogExp2(0x02040a, 0.02);
-
-    // Camera
-    const camera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-    );
-
-    // Renderer
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container.appendChild(renderer.domElement);
-
-    // Group to hold everything
-    const group = new THREE.Group();
-    scene.add(group);
-
-    // Create Particles
-    const particlesGeometry = new THREE.BufferGeometry();
-    const particleCount = 700;
-    const posArray = new Float32Array(particleCount * 3);
-
-    for (let i = 0; i < particleCount * 3; i++) {
-        // Sphere distribution
-        posArray[i] = (Math.random() - 0.5) * 10;
-    }
-
-    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-
-    // Material for Particles - Electric Blue
-    const particlesMaterial = new THREE.PointsMaterial({
-        size: 0.04,
-        color: 0x006CFF, // Electric Blue
-        transparent: true,
-        opacity: 0.8,
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
     });
 
-    // Mesh
-    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
-    group.add(particlesMesh);
-
-    // Secondary Particles - Deep Royal
-    const particlesGeometry2 = new THREE.BufferGeometry();
-    const particleCount2 = 300;
-    const posArray2 = new Float32Array(particleCount2 * 3);
-
-    for (let i = 0; i < particleCount2 * 3; i++) {
-        posArray2[i] = (Math.random() - 0.5) * 12;
-    }
-
-    particlesGeometry2.setAttribute('position', new THREE.BufferAttribute(posArray2, 3));
-
-    const particlesMaterial2 = new THREE.PointsMaterial({
-        size: 0.03,
-        color: 0x5A9CFF, // Soft Blue Highlight
-        transparent: true,
-        opacity: 0.6,
-    });
-
-    const particlesMesh2 = new THREE.Points(particlesGeometry2, particlesMaterial2);
-    group.add(particlesMesh2);
-
-    camera.position.z = 4;
-
-    // Mouse interaction
-    let mouseX = 0;
-    let mouseY = 0;
-
-    window.addEventListener('mousemove', (event) => {
-        mouseX = event.clientX / window.innerWidth - 0.5;
-        mouseY = event.clientY / window.innerHeight - 0.5;
-    });
-
-    // Animation
-    const animate = () => {
-        requestAnimationFrame(animate);
-
-        // Rotate entire group
-        group.rotation.y += 0.002;
-        group.rotation.x += 0.001;
-
-        // Mouse parallax
-        group.rotation.y += mouseX * 0.05;
-        group.rotation.x += mouseY * 0.05;
-
-        renderer.render(scene, camera);
-    };
-
-    animate();
-
-    // Resize handler
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+    elements.forEach(el => observer.observe(el));
 };
 
-// --- 4. GITHUB MISSIONS BOARD ---
+// GitHub Missions
 const initMissions = async () => {
-    const loadingEl = document.getElementById('missions-loading');
-    const containerEl = document.getElementById('missions-container');
-    const errorEl = document.getElementById('missions-error');
-    const filterBtns = document.querySelectorAll('.filter-btn');
+    const loading = document.getElementById('missions-loading');
+    const grid = document.getElementById('missions-grid');
+    const error = document.getElementById('missions-error');
+    const filters = document.querySelectorAll('.filter-btn');
 
-    let allMissions = [];
-    let currentFilter = 'all';
+    if (!grid) return;
 
-    // Fetch issues from GitHub API
     const fetchMissions = async () => {
-        try {
-            // Search for issues with help-wanted, good-first-issue, or bounty labels
-            const queries = [
-                'label:"help wanted" state:open',
-                'label:"good first issue" state:open',
-                'bounty state:open type:issue'
-            ];
+        const queries = [
+            'label:"help wanted" state:open',
+            'label:"good first issue" state:open',
+            'bounty state:open type:issue'
+        ];
 
-            // Fetch all queries in parallel for better performance
-            const responses = await Promise.all(
-                queries.map(query =>
-                    fetch(`https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=updated&per_page=20`)
-                )
-            );
+        const responses = await Promise.all(
+            queries.map(q =>
+                fetch(`https://api.github.com/search/issues?q=${encodeURIComponent(q)}&sort=updated&per_page=15`)
+            )
+        );
 
-            // Check all responses are OK
-            responses.forEach(response => {
-                if (!response.ok) throw new Error('API request failed');
-            });
+        const data = await Promise.all(responses.map(r => r.json()));
+        const all = data.flatMap(d => d.items || []);
+        const unique = [...new Map(all.map(i => [i.id, i])).values()];
 
-            // Parse all JSON responses
-            const dataArrays = await Promise.all(responses.map(r => r.json()));
-
-            // Flatten all issues into single array
-            const allIssues = dataArrays.flatMap(data => data.items);
-
-            // Deduplicate by ID
-            const uniqueIssues = Array.from(
-                new Map(allIssues.map(issue => [issue.id, issue])).values()
-            );
-
-            // Sort by updated date
-            return uniqueIssues.sort((a, b) =>
-                new Date(b.updated_at) - new Date(a.updated_at)
-            ).slice(0, 12); // Limit to 12 most recent
-
-        } catch (error) {
-            console.error('Error fetching missions:', error);
-            throw error;
-        }
+        return unique.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).slice(0, 9);
     };
 
-    // Create mission card HTML
-    const createMissionCard = (issue) => {
+    const createCard = (issue) => {
         const labels = issue.labels.map(l => l.name.toLowerCase());
-        const isBounty = labels.some(l => l.includes('bounty')) ||
-            (issue.body && issue.body.toLowerCase().includes('$'));
-        const isHelpWanted = labels.includes('help wanted');
-        const isGoodFirstIssue = labels.includes('good first issue');
+        const isBounty = labels.some(l => l.includes('bounty'));
+        const isHelp = labels.includes('help wanted');
+        const isFirst = labels.includes('good first issue');
 
-        const labelTags = [];
-        if (isBounty) labelTags.push('<span class="mission-label label-bounty">💰 BOUNTY</span>');
-        if (isHelpWanted) labelTags.push('<span class="mission-label label-help-wanted">HELP WANTED</span>');
-        if (isGoodFirstIssue) labelTags.push('<span class="mission-label label-good-first-issue">GOOD FIRST</span>');
+        const repo = issue.repository_url.split('/').slice(-2).join('/');
+        const days = Math.floor((Date.now() - new Date(issue.updated_at)) / 86400000);
+        const time = days === 0 ? 'Today' : days === 1 ? 'Yesterday' : `${days}d ago`;
 
-        // Extract repo name
-        const repoFullName = issue.repository_url.split('/').slice(-2).join('/');
-
-        // Sanitize and truncate description
-        const escapeHtml = (text) => {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        const escape = t => {
+            const d = document.createElement('div');
+            d.textContent = t;
+            return d.innerHTML;
         };
 
-        const desc = issue.body ?
-            escapeHtml(issue.body.split('\n')[0].substring(0, 150)) + '...' :
-            'No description provided.';
-
-        // Calculate time ago
-        const updatedDate = new Date(issue.updated_at);
-        const daysAgo = Math.floor((Date.now() - updatedDate) / (1000 * 60 * 60 * 24));
-        const timeAgo = daysAgo === 0 ? 'Today' :
-            daysAgo === 1 ? 'Yesterday' :
-                `${daysAgo} days ago`;
+        const desc = issue.body
+            ? escape(issue.body.split('\n')[0].slice(0, 120)) + '...'
+            : 'No description.';
 
         const card = document.createElement('div');
-        card.className = 'mission-card hover-target';
-        card.dataset.labels = labels.join(',');
-        card.dataset.isBounty = isBounty;
-        card.dataset.isHelpWanted = isHelpWanted;
-        card.dataset.isGoodFirstIssue = isGoodFirstIssue;
+        card.className = 'mission-card';
+        card.dataset.bounty = isBounty;
+        card.dataset.help = isHelp;
+        card.dataset.first = isFirst;
+
+        let labelHtml = '';
+        if (isBounty) labelHtml += '<span class="mission-label bounty">Bounty</span>';
+        if (isHelp) labelHtml += '<span class="mission-label help-wanted">Help Wanted</span>';
+        if (isFirst) labelHtml += '<span class="mission-label good-first">Good First</span>';
 
         card.innerHTML = `
-            <div class="mission-header">
-                <div class="mission-labels">
-                    ${labelTags.join('')}
-                </div>
-            </div>
-            <h3 class="mission-title">${escapeHtml(issue.title)}</h3>
-            <div class="mission-repo">${escapeHtml(repoFullName)}</div>
-            <p class="mission-description">${desc}</p>
+            <div class="mission-labels">${labelHtml}</div>
+            <h3 class="mission-title">${escape(issue.title)}</h3>
+            <p class="mission-repo">${escape(repo)}</p>
+            <p class="mission-desc">${desc}</p>
             <div class="mission-footer">
-                <div class="mission-meta">
-                    <span>💬 ${issue.comments}</span>
-                    <span>📅 ${timeAgo}</span>
-                </div>
-                <a href="${escapeHtml(issue.html_url)}" target="_blank" rel="noopener noreferrer" class="mission-link hover-target">VIEW →</a>
+                <span class="mission-meta">${issue.comments} comments · ${time}</span>
+                <a href="${issue.html_url}" target="_blank" class="mission-link">View →</a>
             </div>
         `;
 
         return card;
     };
 
-    // Filter missions
-    const filterMissions = (filter) => {
-        const cards = containerEl.querySelectorAll('.mission-card');
-        cards.forEach(card => {
-            const shouldShow =
-                filter === 'all' ||
-                (filter === 'bounty' && card.dataset.isBounty === 'true') ||
-                (filter === 'help-wanted' && card.dataset.isHelpWanted === 'true') ||
-                (filter === 'good-first-issue' && card.dataset.isGoodFirstIssue === 'true');
-
-            card.style.display = shouldShow ? 'block' : 'none';
+    const filter = (type) => {
+        document.querySelectorAll('.mission-card').forEach(card => {
+            const show = type === 'all' ||
+                (type === 'bounty' && card.dataset.bounty === 'true') ||
+                (type === 'help-wanted' && card.dataset.help === 'true') ||
+                (type === 'good-first-issue' && card.dataset.first === 'true');
+            card.style.display = show ? '' : 'none';
         });
     };
 
-    // Filter button handlers
-    filterBtns.forEach(btn => {
+    filters.forEach(btn => {
         btn.addEventListener('click', () => {
-            filterBtns.forEach(b => b.classList.remove('active'));
+            filters.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            currentFilter = btn.dataset.filter;
-            filterMissions(currentFilter);
+            filter(btn.dataset.filter);
         });
     });
 
-    // Load missions
     try {
         const missions = await fetchMissions();
-        allMissions = missions;
-
-        loadingEl.style.display = 'none';
-        containerEl.style.display = 'grid';
-
-        missions.forEach(issue => {
-            const card = createMissionCard(issue);
-            containerEl.appendChild(card);
-        });
-
-    } catch (error) {
-        loadingEl.style.display = 'none';
-        errorEl.style.display = 'block';
+        loading.style.display = 'none';
+        grid.style.display = 'grid';
+        missions.forEach(m => grid.appendChild(createCard(m)));
+    } catch (e) {
+        loading.style.display = 'none';
+        error.style.display = 'block';
     }
 };
 
-// --- 5. CUSTOM CURSOR & MAGNETIC EFFECT ---
-const initCursor = () => {
-    const cursorDot = document.querySelector('.cursor-dot');
-    const cursorOutline = document.querySelector('.cursor-outline');
-
-    // Mouse movement
-    window.addEventListener('mousemove', (e) => {
-        const posX = e.clientX;
-        const posY = e.clientY;
-
-        // Dot follows instantly
-        cursorDot.style.left = `${posX}px`;
-        cursorDot.style.top = `${posY}px`;
-
-        // Outline follows with delay (using animate for smoothness)
-        cursorOutline.animate({
-            left: `${posX}px`,
-            top: `${posY}px`
-        }, { duration: 500, fill: "forwards" });
-    });
-
-    // Hover effects
-    const hoverTargets = document.querySelectorAll('.hover-target, a, button, .mission-card, .glass-panel');
-
-    hoverTargets.forEach(target => {
-        target.addEventListener('mouseenter', () => {
-            cursorOutline.style.width = '60px';
-            cursorOutline.style.height = '60px';
-            cursorOutline.style.backgroundColor = 'rgba(77, 77, 255, 0.1)';
-            cursorOutline.style.borderColor = 'transparent';
-        });
-
-        target.addEventListener('mouseleave', () => {
-            cursorOutline.style.width = '40px';
-            cursorOutline.style.height = '40px';
-            cursorOutline.style.backgroundColor = 'transparent';
-            cursorOutline.style.borderColor = 'var(--accent-secondary)';
-        });
-    });
-};
-
-// --- 6. SCROLL REVEAL ---
-const initScrollReveal = () => {
-    const reveals = document.querySelectorAll('.reveal');
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('active');
-            }
-        });
-    }, {
-        threshold: 0.1
-    });
-
-    reveals.forEach(reveal => observer.observe(reveal));
-};
-
-// --- 7. INTAKE AGENT ---
-const initIntakeAgent = () => {
-    const modal = document.getElementById('intake-modal');
-    const startBtn = document.getElementById('start-project-btn');
-    const closeBtn = document.getElementById('close-modal');
-    const chatHistory = document.getElementById('chat-history');
-    const userInput = document.getElementById('user-input');
-    const sendBtn = document.getElementById('send-btn');
-
-    let hasGreeted = false;
-
-    // Open Modal
-    startBtn.addEventListener('click', () => {
-        modal.classList.add('active');
-        if (!hasGreeted) {
-            setTimeout(() => {
-                addAgentMessage("Neural link established. I am the Swarm Orchestrator.");
-                setTimeout(() => {
-                    addAgentMessage("Describe your project vision. I will decompose it into actionable missions for the swarm.");
-                }, 1000);
-            }, 500);
-            hasGreeted = true;
-        }
-    });
-
-    // Close Modal
-    closeBtn.addEventListener('click', () => {
-        modal.classList.remove('active');
-    });
-
-    // Send Message
-    const handleSend = () => {
-        const text = userInput.value.trim();
-        if (!text) return;
-
-        // Add User Message
-        addUserMessage(text);
-        userInput.value = '';
-
-        // Simulate Agent Thinking & Response
-        simulateAgentResponse(text);
-    };
-
-    sendBtn.addEventListener('click', handleSend);
-    userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
-    });
-
-    function addUserMessage(text) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'message user';
-        msgDiv.textContent = text;
-        chatHistory.appendChild(msgDiv);
-        chatHistory.scrollTop = chatHistory.scrollHeight;
-    }
-
-    function addAgentMessage(text) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'message agent';
-
-        // Typewriter effect
-        let i = 0;
-        msgDiv.textContent = '';
-        chatHistory.appendChild(msgDiv);
-
-        const typeInterval = setInterval(() => {
-            msgDiv.textContent += text.charAt(i);
-            i++;
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-            if (i >= text.length) {
-                clearInterval(typeInterval);
-            }
-        }, 20);
-    }
-
-    function simulateAgentResponse(userText) {
-        // Simple keyword matching for demo purposes
-        const lowerText = userText.toLowerCase();
-        let response = "";
-        let missions = [];
-
-        if (lowerText.includes("crypto") || lowerText.includes("token") || lowerText.includes("defi")) {
-            response = "Analyzing DeFi parameters... I've identified a need for secure smart contract architecture.";
-            missions = ["Smart Contract Audit", "Tokenomics Design", "React dApp Frontend"];
-        } else if (lowerText.includes("web") || lowerText.includes("site") || lowerText.includes("app")) {
-            response = "Web architecture detected. Optimizing for performance and SEO.";
-            missions = ["UX/UI Design System", "Frontend Implementation", "Backend API Setup"];
-        } else {
-            response = "Processing request... I will assemble a generalist squad for this task.";
-            missions = ["Requirements Gathering", "Prototype Development", "System Architecture"];
-        }
-
-        // Thinking delay
-        const typingIndicator = document.createElement('div');
-        typingIndicator.className = 'typing-indicator active';
-        typingIndicator.textContent = 'Orchestrator is analyzing...';
-        chatHistory.appendChild(typingIndicator);
-        chatHistory.scrollTop = chatHistory.scrollHeight;
-
-        setTimeout(() => {
-            typingIndicator.remove();
-            addAgentMessage(response);
-
-            setTimeout(() => {
-                addAgentMessage(`Proposed Missions Generated:\n\n${missions.map(m => `• ${m}`).join('\n')}`);
-                // Here we could actually trigger the missions board update in a real app
-            }, 1500);
-        }, 2000);
-    }
-};
-
-// Initialize All
+// Init
 document.addEventListener('DOMContentLoaded', () => {
-    initLenis();
-    initThreeJS();
+    initNetwork();
+    initSmoothScroll();
+    initReveal();
     initMissions();
-    initCursor();
-    initScrollReveal();
-    initIntakeAgent();
 });

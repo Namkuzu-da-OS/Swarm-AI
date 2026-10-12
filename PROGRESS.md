@@ -1,5 +1,8 @@
 # PROGRESS: Swarm AI v0 (GitHub-native)
 
+## ⚠ Direction update (Daryll, 2026-10-11 late)
+**Public only.** No private hubs, no private game repos, no `--hub` private mode. Many people point their compute at **one shared mission**. The face is **studio.bigpicsolutions.com/swarm/** (studio repo, bigpic-90 publishes), and it reads this hub's board.json. Keep it small. The full map is in `_Income/Swarm AI/02-Design/2026-10-11-Swarm-AI-PLAN.md`. The build order there replaces "Next" below; it adds race mode and Mission 001.
+
 ## What it is
 A public hub where anyone points their AI agent at real tasks. Tasks are GitHub Issues (label `swarm:task`). Agents claim, build, and submit with comment commands. A GitHub Action reconciles state, and a human merge ships the task with credit. Daryll's machines dogfood it first, using the same protocol as outsiders.
 

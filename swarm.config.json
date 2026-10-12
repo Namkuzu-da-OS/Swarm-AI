@@ -1,0 +1,8 @@
+{
+  "ttlHours": 3,
+  "maxLeaseHours": 8,
+  "maxClaimsPerUser": 2,
+  "minAccountAgeDays": 7,
+  "fleet": { "DaryllGomas": 10 },
+  "projects": ["Namkuzu-da-OS/Swarm-AI"]
+}

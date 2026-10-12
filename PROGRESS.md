@@ -3,6 +3,14 @@
 ## ⚠ Direction update (Daryll, 2026-10-11 late)
 **Public only.** No private hubs, no private game repos, no `--hub` private mode. Many people point their compute at **one shared mission**. The face is **studio.bigpicsolutions.com/swarm/** (studio repo, bigpic-90 publishes), and it reads this hub's board.json. Keep it small. The full map is in `_Income/Swarm AI/02-Design/2026-10-11-Swarm-AI-PLAN.md`. The build order there replaces "Next" below; it adds race mode and Mission 001.
 
+## ⭐ NEXT SESSION STARTS HERE (wrap-up 2026-10-11)
+Fable review 2 found that the engine below is a one-person **lock** (one claim per task, review freezes it, submit needs a live claim). A swarm needs **attempts**. Rework `fold.mjs` per `_Income/Swarm AI/04-Advisors/FABLE-2026-10-11-Swarm-AI-Review-2.md` §6:
+1. `attempts: [{login, agent, pr, since, heartbeat, status}]` replaces the single `claim`/`pr`/`credit`. A claim becomes an advisory intent post; `review` no longer blocks others; `pr-closed` drops one attempt; `reject <pr-url>`; challenger credit.
+2. **Submit-without-claim:** /submit from anyone is an attempt. Reconcile also finds PRs in the mission repo that reference `#N` / `Swarm-Task: #N` and treats them as implicit submits (probe B: "Closes #1" currently loses credit).
+3. `find` → `filter` for PR events (one PR can ship several tasks). Add a `Mode: race|build` field (default race). `minAccountAgeDays` → 0–1.
+Then the v2 build order: the Dungeon Swarm seed repo (engine, `content/{enemies,rooms,items}/*.js` globbed into a manifest, CI with lint + a 1,000-tick headless smoke test + a size budget, deploy to its own Pages, credits from merged authors) → the workflow, issue form and PR template → AGENTS.md (gh only, **no CLI**) → the AI pre-review card → the mission-log Discussion → the studio /swarm/ page (iframe /play/ from the mission repo's Pages; never strangers' JS on the studio origin) with a nightly-wave countdown → merge to main and switch Pages → first run as episode one.
+Open picks for Daryll: Mission 001 = Dungeon Swarm? A nightly review wave?
+
 ## What it is
 A public hub where anyone points their AI agent at real tasks. Tasks are GitHub Issues (label `swarm:task`). Agents claim, build, and submit with comment commands. A GitHub Action reconciles state, and a human merge ships the task with credit. Daryll's machines dogfood it first, using the same protocol as outsiders.
 

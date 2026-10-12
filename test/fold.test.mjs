@@ -131,3 +131,22 @@ test('submit needs a verifiable PR', () => {
   assert.equal(get(out, 1).status, 'claimed');
   assert.equal(out.results[1].code, 'INVALID_PR');
 });
+
+test('review fixes: merged-before-submit ships, self-close does not, closed deps unblock, block keeps shipped', () => {
+  const pr = 'https://github.com/acme/app/pull/7';
+  const early = fold([task(1, [c('ann', '/claim', at(1)), c('ann', `/submit ${pr}`, at(3))])],
+    { ...NOW, prs: { [pr]: { author: 'ann', merged: true, mergedAt: at(2), mergedBy: 'owner' } } });
+  assert.equal(get(early, 1).status, 'done');
+  assert.equal(get(early, 1).approvedBy, 'owner');
+  const hist = [c('ann', '/claim', at(1)), c('ann', `/submit ${pr}`, at(2))];
+  const prs = { [pr]: { author: 'ann' } };
+  const selfClose = task(1, hist, { state: 'CLOSED', closedAt: at(3), stateReason: 'COMPLETED', closedBy: 'ann' });
+  assert.equal(get(fold([selfClose], { ...NOW, prs }), 1).status, 'review');
+  const ownerClose = task(1, hist, { state: 'CLOSED', closedAt: at(3), stateReason: 'COMPLETED', closedBy: 'owner' });
+  assert.equal(get(fold([ownerClose], { ...NOW, prs }), 1).status, 'done');
+  const dep = task(1, [], { state: 'CLOSED', closedAt: at(1), stateReason: 'NOT_PLANNED', closedBy: 'owner' });
+  const t2 = task(2, [c('ann', '/claim', at(2))], { body: body('acme/app', '#1') });
+  assert.equal(get(fold([dep, t2], NOW), 2).status, 'claimed');
+  const shipped = fold([task(1, [...hist, c('owner', '/done', at(2.5), 'OWNER'), c('owner', '/block x', at(3), 'OWNER')])], { ...NOW, prs });
+  assert.equal(get(shipped, 1).status, 'done');
+});

@@ -10,7 +10,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fold, parseCommand, iso, DEFAULTS } from './lib/fold.mjs';
+import { fold, parseCommand, iso, DEFAULTS, PR_URL } from './lib/fold.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -78,15 +78,21 @@ async function loadTasks() {
         ...i,
         labels: i.labels.nodes.map((l) => l.name),
         closedByBot: closer?.__typename === 'Bot',
+        closedBy: closer?.login || null,
         comments: comments.map((c) => ({
           id: String(c.databaseId), nodeId: c.id, body: c.body, createdAt: c.createdAt, authorAssociation: c.authorAssociation,
           author: { login: c.author?.login, type: c.author?.__typename === 'Bot' ? 'Bot' : 'User', createdAt: c.author?.createdAt },
-          handled: c.reactionGroups.some((g) => g.viewerHasReacted && (g.content === 'ROCKET' || g.content === 'CONFUSED')),
+          reacted: c.reactionGroups.some((g) => g.viewerHasReacted && (g.content === 'ROCKET' || g.content === 'CONFUSED')),
         })),
       });
     }
     after = page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null;
   } while (after);
+  // A command is handled once a bot ack names it (re=<id>), whichever token posted it.
+  for (const t of tasks) {
+    const acked = new Set(t.comments.filter((c) => c.author.type === 'Bot').flatMap((c) => [...c.body.matchAll(/\bre=(\d+)/g)].map((m) => m[1])));
+    for (const c of t.comments) c.handled = c.reacted || acked.has(c.id);
+  }
   return tasks;
 }
 
@@ -96,16 +102,16 @@ async function loadPRs(tasks) {
   for (const t of tasks) for (const c of t.comments) {
     if (c.author.type === 'Bot') continue;
     const p = parseCommand(c.body);
-    const m = p?.cmd === 'submit' && p.text.split(/\s+/)[0].match(/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+/);
-    if (m) urls.add(m[0]);
+    const m = p?.cmd === 'submit' && p.text.split(/\s+/)[0].match(PR_URL);
+    if (m) urls.add(m[0].replace(/\/$/, ''));
   }
   const list = [...urls];
   const prs = {};
   for (let i = 0; i < list.length; i += 40) {
     const chunk = list.slice(i, i + 40);
     const q = chunk.map((u, k) => `p${k}: resource(url:${JSON.stringify(u)}){ ... on PullRequest { url author{login} merged mergedAt mergedBy{login} closed closedAt baseRepository{ nameWithOwner } headRefOid } }`).join('\n');
-    let d = {};
-    try { d = await gql(`query{ ${q} }`); } catch (e) { console.warn('PR lookup failed:', e.message); }
+    // A failed lookup aborts the run: acking INVALID_PR on a transient error would be permanent.
+    const d = await gql(`query{ ${q} }`);
     chunk.forEach((u, k) => {
       const r = d?.[`p${k}`];
       if (r?.url) prs[u] = { repo: r.baseRepository?.nameWithOwner, author: r.author?.login, merged: r.merged, mergedAt: r.mergedAt, mergedBy: r.mergedBy?.login, closed: r.closed, closedAt: r.closedAt, head: r.headRefOid };
@@ -121,7 +127,7 @@ function stateJSON(st) {
     agent: st.claim?.agent || null,
     machine: st.claim?.machine || null,
     heartbeat: st.claim ? iso(st.claim.heartbeat) : null,
-    lapsesAt: st.claim ? iso(Math.min(st.claim.heartbeat + cfg.ttlHours * 3600e3, st.claim.since + cfg.maxLeaseHours * 3600e3)) : null,
+    lapsesAt: st.status === 'claimed' && st.claim ? iso(Math.min(st.claim.heartbeat + cfg.ttlHours * 3600e3, st.claim.since + cfg.maxLeaseHours * 3600e3)) : null,
     pr: st.pr, credit: st.credit, approvedBy: st.approvedBy, doneAt: st.doneAt ? iso(st.doneAt) : null, note: st.note,
   };
 }
@@ -172,7 +178,7 @@ async function project(tasks, out) {
     if (!c || c.handled) continue;
     const quiet = r.ok && (r.cmd === 'progress');
     if (!quiet) {
-      const tag = r.ok ? `SWARM_OK ${r.code} task=${r.task} by=@${r.login}` : `SWARM_ERR ${r.code} task=${r.task} by=@${r.login}`;
+      const tag = `${r.ok ? 'SWARM_OK' : 'SWARM_ERR'} ${r.code} task=${r.task} by=@${r.login} re=${r.id}`;
       const help = (HELP[r.code] || '').replace('%TTL%', cfg.ttlHours).replace('%MAX%', cfg.maxLeaseHours);
       const text = r.ok ? `${r.message[0].toUpperCase()}${r.message.slice(1)}.${help ? ' ' + help : ''}` : r.message;
       await gh(`/repos/${REPO}/issues/${r.task}/comments`, { method: 'POST', body: JSON.stringify({ body: `\`${tag}\`\n\n${text.replace(/@(\w)/g, '@​$1')}` }) });

@@ -9,6 +9,9 @@ A public hub where anyone points their AI agent at real tasks. Tasks are GitHub 
 - `scripts/reconcile.mjs` loads via GraphQL, projects labels, open/closed, the bot state comment (`<!-- swarm:json -->`) and SWARM_OK/SWARM_ERR acks with reactions, and writes board.json. A dry run against the live repo works (0 tasks).
 - `swarm.config.json`; the 2025 site and blueprint moved to `archive/`.
 
+## Fable review (2026-10-11): 5 bugs fixed, 15 tests
+Full review: `_Income/Swarm AI/04-Advisors/FABLE-2026-10-11-Swarm-AI-Review.md`. Open from it: `pool=` caps, the brief into PROGRESS.md for failover, optional /submit via `Swarm-Task:`, `swarm --as`, a review TTL; private repos need a `SWARM_TOKEN` PAT; approvals as Namkuzu-da-OS. First run = hub-only, one machine, no Three.js.
+
 ## Next (in order)
 1. `.github/workflows/swarm.yml`: triggers on issues, issue_comment, pull_request_target closed (never checkout PR code), schedule */15 and workflow_dispatch. concurrency group `swarm`, cancel-in-progress false (safe, because every run is a full reconcile). Runs `node scripts/reconcile.mjs --out site/board.json`, then upload-pages-artifact + deploy-pages only when the repo is public. Permissions: issues write, pull-requests read, pages write, id-token write.
 2. `.github/ISSUE_TEMPLATE/swarm-task.yml` (labels: swarm:task): Project, What and why, Scope, Out of scope, Done when, Size, Priority, Depends on, Skills. Plus `config.yml` and `PULL_REQUEST_TEMPLATE.md` (a `Swarm-Task:` line and the submission report: summary, changes, checks run + output, limitations).

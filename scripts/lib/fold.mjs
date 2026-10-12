@@ -19,7 +19,7 @@ export const DEFAULTS = {
 
 const MAINTAINER = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
 const COMMANDS = new Set(['claim', 'progress', 'release', 'revoke', 'submit', 'done', 'reject', 'approve', 'block', 'reopen']);
-const PR_URL = /^https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/pull\/(\d+)\/?$/;
+export const PR_URL = /^https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/pull\/(\d+)\/?$/;
 
 export function isMaintainer(assoc) {
   return MAINTAINER.has(String(assoc || '').toUpperCase());
@@ -128,7 +128,7 @@ export function fold(tasks, { now = new Date(), config = {}, prs = {} } = {}) {
   // A maintainer closing an issue by hand is an event too (the bot's own closes are projections).
   for (const issue of tasks) {
     if (issue.state === 'CLOSED' && issue.closedAt && !issue.closedByBot) {
-      events.push({ kind: 'issue-closed', task: issue.number, t: +new Date(issue.closedAt), reason: issue.stateReason, id: 'close' });
+      events.push({ kind: 'issue-closed', task: issue.number, t: +new Date(issue.closedAt), reason: issue.stateReason, login: issue.closedBy || null, id: 'close' });
     }
   }
 
@@ -160,7 +160,8 @@ export function fold(tasks, { now = new Date(), config = {}, prs = {} } = {}) {
       const st = byNum.get(ev.task);
       if (['done', 'closed'].includes(st.status)) continue;
       if (st.status === 'review' && ev.reason === 'COMPLETED') {
-        st.status = 'done'; st.doneAt = ev.t; st.log.push({ t: ev.t, what: 'shipped: issue closed as completed' });
+        if (!ev.login || ev.login === st.credit?.login) { st.log.push({ t: ev.t, what: 'closed as completed by its own builder; needs another maintainer' }); continue; }
+        st.status = 'done'; st.doneAt = ev.t; st.approvedBy = ev.login; st.log.push({ t: ev.t, what: `shipped: issue closed as completed by @${ev.login}` });
       } else {
         st.status = 'closed'; st.claim = null; st.log.push({ t: ev.t, what: 'closed by a maintainer' });
       }
@@ -202,7 +203,7 @@ export function fold(tasks, { now = new Date(), config = {}, prs = {} } = {}) {
         if (st.status === 'proposed') { r(false, `Not open yet: a maintainer has to /approve this task first.`); break; }
         if (st.status === 'claimed') { r(false, `Already claimed by @${st.claim.login} (lapses ${iso(st.claim.heartbeat + ttl)} without a heartbeat).`); break; }
         if (st.status !== 'open') { r(false, `Can't claim: the task is ${st.status}.`); break; }
-        const waiting = st.depends.filter((n) => byNum.get(n)?.status !== 'done');
+        const waiting = st.depends.filter((n) => byNum.has(n) && !['done', 'closed'].includes(byNum.get(n).status));
         if (waiting.length) { r(false, `Waiting on ${waiting.map((n) => '#' + n).join(', ')} to ship first.`); break; }
         const cap = cfg.fleet[L] ?? cfg.maxClaimsPerUser;
         if (activeClaims(L, ev.t) >= cap) { r(false, `@${L} already holds ${cap} active claims. Finish or /release one first.`, 'CLAIM_LIMIT'); break; }
@@ -238,6 +239,10 @@ export function fold(tasks, { now = new Date(), config = {}, prs = {} } = {}) {
         st.status = 'review'; st.pr = url;
         st.credit = { login: L, agent: st.claim.agent, machine: st.claim.machine };
         r(true, `submitted for review by @${L}: ${url}`);
+        if (facts.merged && facts.mergedBy && facts.mergedBy !== facts.author && +new Date(facts.mergedAt) <= ev.t) {
+          st.status = 'done'; st.doneAt = ev.t; st.approvedBy = facts.mergedBy;
+          st.log.push({ t: ev.t, what: `shipped: PR was already merged by @${facts.mergedBy}` });
+        }
         break;
       }
       case 'done': {
@@ -264,6 +269,7 @@ export function fold(tasks, { now = new Date(), config = {}, prs = {} } = {}) {
       }
       case 'block': {
         if (!ev.maintainer) { r(false, `Only maintainers can block a task.`); break; }
+        if (st.status === 'done') { r(false, `Shipped tasks can't be blocked; /reopen first.`); break; }
         st.status = 'blocked'; st.claim = null; st.note = ev.text || null;
         r(true, `blocked by @${L}${ev.text ? ': ' + ev.text : ''}`);
         break;
